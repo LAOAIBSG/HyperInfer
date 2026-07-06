@@ -2,15 +2,16 @@ import os
 import re
 import argparse
 import csv
-# 指定文件夹路径，你需要将这里替换为实际的文件夹路径
-folder_path = "./fewshots_datasets/output_ae"
+
 def add_parser_arguments(parser):
     parser.add_argument("--figure22", action="store_true")
     parser.add_argument("--figure15", action="store_true")
     parser.add_argument("--figure11", action="store_true")
+    parser.add_argument("--folder-path", type=str, default="./fewshots_datasets/output")
 parser = argparse.ArgumentParser()
 add_parser_arguments(parser)
 args = parser.parse_args()
+folder_path = args.folder_path
 # 用于存储分组后的文件，键为结尾字符串，值为对应结尾的文件列表
 grouped_files = {
     "ours.log": [],
@@ -63,8 +64,8 @@ def extract_acc_info(grouped_files, args):
                                         pattern = r"^((?:[^-]*-){2}[^-]*)-.*percent_(\d+)"
                                         match2 = re.search(pattern, os.path.basename(file_path))
                                         if match2:
-                                            dataset_model = match1.group(1)  # 第一个匹配组：第三个'-'之前的子串
-                                            percent_value = match1.group(2)  # 第二个匹配组：percent的值
+                                            dataset_model = match2.group(1)  # 第一个匹配组：第三个'-'之前的子串
+                                            percent_value = match2.group(2)  # 第二个匹配组：percent的值
                                             f.write(f'as+h20+lru_{dataset_model}_{percent_value}_{match.group(0)}\n')
                                 if 'recomp' in os.path.basename(file_path):
                                     print('recomp')
@@ -72,7 +73,7 @@ def extract_acc_info(grouped_files, args):
                                         pattern = r"^((?:[^-]*-){2}[^-]*)-"
                                         match3 = re.search(pattern, os.path.basename(file_path))
                                         if match3:
-                                            dataset_model = match.group(1)
+                                            dataset_model = match3.group(1)
                                             f.write(f'recomp_{dataset_model}_{match.group(0)}\n')
             except FileNotFoundError:
                 print(f"文件 {file_path} 不存在，跳过该文件")
@@ -104,11 +105,11 @@ if args.figure15:
                 rows.append(row)
         # 按照字典序对rows进行排序，排序依据是每行数据组成的元组（将列表转换为元组进行比较）
         sorted_rows = sorted(rows, key=tuple)
-        with open('./scripts/figure11.csv', 'w', encoding='utf-8', newline='') as file:
+        with open('./scripts/figure15.csv', 'w', encoding='utf-8', newline='') as file:
             writer = csv.writer(file)
             for sorted_row in sorted_rows:
                 writer.writerow(sorted_row)
     except FileNotFoundError:
-        print(f"文件 {'./scripts/figure11.csv'} 不存在")
+        print(f"文件 {'./scripts/figure15.csv'} 不存在")
     except Exception as e:
         print(f"处理CSV文件时出现错误: {e}")

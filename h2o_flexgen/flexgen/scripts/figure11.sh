@@ -1,22 +1,27 @@
 #!/bin/bash
-# rm -rf ./logs_sim/*
-rm -rf ./fewshots_datasets/output_ae/*
+set -e
+
+PYTHON_BIN="${PYTHON_BIN:-python3}"
+OUTPUT_DIR="./fewshots_datasets/output"
+mkdir -p "$OUTPUT_DIR"
+rm -rf "$OUTPUT_DIR"/*
+
 model="facebook/opt-6.7b"
 sele_percents=25
 # sim_threds=(1 0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2 0.1 0)
 sim_threds=(0)
 
-datasets=("./fewshots_datasets/input/openbookqa-sample.jsonl" )
+datasets=("./fewshots_datasets/input/openbookqa.jsonl" )
 
 result_prefix="./fewshots_datasets"  # 这里需要替换成实际的结果文件路径前缀，例如 /home/user/results
 
 for sim_thred in "${sim_threds[@]}"
 do
     input_file="${datasets[0]}"
-    task="openbookqa-sample"  # 这里需替换为实际的任务名
-    result_file="${result_prefix}/output_ae/${task}-opt-6.7b-full.jsonl"
+    task="openbookqa"
+    result_file="${result_prefix}/output/${task}-opt-6.7b-full.jsonl"
 
-    time python3 ./flex_opt.py \
+    time "$PYTHON_BIN" ./flex_opt.py \
             --gpu-batch-size 1 \
             --overlap false \
             --model $model \

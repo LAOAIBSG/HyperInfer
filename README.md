@@ -53,3 +53,28 @@ FlexGen scripts:
 cd h2o_flexgen/flexgen
 mkdir -p cache/kvs cache/prefix/opt-6.7b cache/prefix/opt-13b cache/prefix/opt-30b
 ```
+
+## Running Accuracy Evaluations
+
+The accuracy scripts use the local `lm_eval/base.py` and `lm_eval/evaluator.py`
+patches. Run the symlink step once in the same Python environment used for the
+experiments:
+
+```bash
+cd h2o_flexgen/flexgen
+python ./lm_eval/symlink.py
+```
+
+Then run the figure scripts:
+
+```bash
+./scripts/figure_11.sh
+./scripts/figure_15.sh
+./scripts/figure22_acc.sh
+```
+
+If `python` is not on `PATH`, pass the interpreter explicitly:
+
+```bash
+PYTHON_BIN=/path/to/python ./scripts/figure_15.sh
+```

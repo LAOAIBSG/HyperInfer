@@ -3321,6 +3321,7 @@ def run_flexgen(args, logtrace_filename):
             input_path = args.input_path
             dirname, filename_ext = os.path.dirname(input_path), os.path.basename(input_path)
             outdirname = os.path.join(os.path.dirname(dirname), 'output')
+            os.makedirs(outdirname, exist_ok=True)
             filename, ext = os.path.splitext(filename_ext)
             modelname = args.model.split('/')[-1]
             output_path = os.path.join(outdirname, filename+f'-{modelname}-full{ext}')
@@ -3491,10 +3492,10 @@ def run_flexgen(args, logtrace_filename):
             if args.input_path and args.logits:
                 shutil.copy(logtrace_filename, backup_filepath)
             
-            # 推理结果写入 output_path
-            # with open(output_path, 'w') as f:
-            #     for result in results:
-            #         f.write(json.dumps(result) + '\n')
+            # Write JSONL results for evaluate_task_result.py.
+            with open(output_path, 'w') as f:
+                for result in results:
+                    f.write(json.dumps(result) + '\n')
             sys.exit()
             # sys.exit(0)
         elif logits_bool and args.perplexity:
@@ -3561,6 +3562,7 @@ def run_flexgen(args, logtrace_filename):
             input_path = args.input_path
             dirname, filename_ext = os.path.dirname(input_path), os.path.basename(input_path)
             outdirname = os.path.join(os.path.dirname(dirname), 'output')
+            os.makedirs(outdirname, exist_ok=True)
             filename, ext = os.path.splitext(filename_ext)
             modelname = args.model.split('/')[-1]
             output_path = os.path.join(outdirname, filename+f'-{modelname}-generate.pt')
@@ -3604,6 +3606,7 @@ def run_flexgen(args, logtrace_filename):
             input_path = args.input_path
             dirname, filename_ext = os.path.dirname(input_path), os.path.basename(input_path)
             outdirname = os.path.join(os.path.dirname(dirname), 'output')
+            os.makedirs(outdirname, exist_ok=True)
             filename, ext = os.path.splitext(filename_ext)
             modelname = args.model.split('/')[-1]
             output_path = os.path.join(outdirname, filename+f'-{modelname}-full{ext}')

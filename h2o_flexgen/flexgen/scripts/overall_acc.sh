@@ -1,6 +1,9 @@
 #!/bin/bash
 
 result_prefix="./fewshots_datasets"
+PYTHON_BIN="${PYTHON_BIN:-python3}"
+OUTPUT_DIR="${result_prefix}/output"
+mkdir -p "$OUTPUT_DIR"
 
 # 定义任务列表
 tasks=("copa")
@@ -15,7 +18,7 @@ run_full_load_sele_inf() {
         for task in "${tasks[@]}"; do
             input_file="${result_prefix}/input/${task}.jsonl"
 
-            time python flex_opt.py \
+            time "$PYTHON_BIN" flex_opt.py \
                 --gpu-batch-size 1 \
                 --overlap false \
                 --model "$m" \
@@ -32,9 +35,9 @@ run_full_load_sele_inf() {
         done
 
         for task in "${tasks[@]}"; do
-            result_file="${result_prefix}/output_ae/${task}-${m##*/}-full.jsonl"
+            result_file="${result_prefix}/output/${task}-${m##*/}-full.jsonl"
 
-            time python evaluate_task_result.py \
+            time "$PYTHON_BIN" evaluate_task_result.py \
                 --result-file "$result_file" \
                 --task-name "$task" \
                 --model-type opt \
@@ -51,7 +54,7 @@ run_sele_load_by_percent() {
         for task in "${tasks[@]}"; do
             input_file="${result_prefix}/input/${task}.jsonl"
 
-            time python flex_opt.py \
+            time "$PYTHON_BIN" flex_opt.py \
                 --gpu-batch-size 1 \
                 --overlap false \
                 --model "$m" \
@@ -70,9 +73,9 @@ run_sele_load_by_percent() {
         done
 
         for task in "${tasks[@]}"; do
-            result_file="${result_prefix}/output_ae/${task}-${m##*/}-full.jsonl"
+            result_file="${result_prefix}/output/${task}-${m##*/}-full.jsonl"
 
-            time python evaluate_task_result.py \
+            time "$PYTHON_BIN" evaluate_task_result.py \
                 --result-file "$result_file" \
                 --task-name "$task" \
                 --model-type opt \
@@ -86,7 +89,7 @@ run_full_load_full_inf() {
         for task in "${tasks[@]}"; do
             input_file="${result_prefix}/input/${task}.jsonl"
 
-            time python flex_opt.py \
+            time "$PYTHON_BIN" flex_opt.py \
                 --gpu-batch-size 1 \
                 --overlap false \
                 --model "$m" \
@@ -100,9 +103,9 @@ run_full_load_full_inf() {
         done
 
         for task in "${tasks[@]}"; do
-            result_file="${result_prefix}/output_ae/${task}-${m##*/}-full.jsonl"
+            result_file="${result_prefix}/output/${task}-${m##*/}-full.jsonl"
 
-            time python evaluate_task_result.py \
+            time "$PYTHON_BIN" evaluate_task_result.py \
                 --result-file "$result_file" \
                 --task-name "$task" \
                 --model-type opt \

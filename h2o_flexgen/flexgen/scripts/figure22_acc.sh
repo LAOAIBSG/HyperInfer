@@ -1,6 +1,11 @@
 #!/bin/bash
+set -e
 
-rm -rf ./fewshots_datasets/output_ae/*
+PYTHON_BIN="${PYTHON_BIN:-python3}"
+OUTPUT_DIR="./fewshots_datasets/output"
+mkdir -p "$OUTPUT_DIR"
+rm -rf "$OUTPUT_DIR"/*
+
 result_prefix="fewshots_datasets/"
 
 # 定义任务列表，这里只有"rte"
@@ -16,7 +21,7 @@ run_sele_load_by_percent() {
     for task in "${tasks[@]}"; do
         input_file="${result_prefix}/input/${task}.jsonl"
 
-        time python flex_opt.py \
+        time "$PYTHON_BIN" flex_opt.py \
             --gpu-batch-size 1 \
             --overlap false \
             --model facebook/opt-6.7b \
@@ -35,9 +40,9 @@ run_sele_load_by_percent() {
     done
 
     for task in "${tasks[@]}"; do
-        result_file="${result_prefix}/output_ae/${task}-opt-6.7b-full.jsonl"
+        result_file="${result_prefix}/output/${task}-opt-6.7b-full.jsonl"
 
-        time python evaluate_task_result.py \
+        time "$PYTHON_BIN" evaluate_task_result.py \
             --result-file "$result_file" \
             --task-name "$task" \
             --model-type opt \
@@ -52,5 +57,5 @@ for s in "${sim_thred[@]}"; do
     run_sele_load_by_percent "$sele_percent" "$s"
 done
 
-time python3 ./scripts/extract_acc.py\
+time "$PYTHON_BIN" ./scripts/extract_acc.py\
             --figure22

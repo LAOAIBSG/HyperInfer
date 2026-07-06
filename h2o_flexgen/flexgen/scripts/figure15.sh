@@ -1,5 +1,10 @@
 #!/bin/bash
-rm -rf ./fewshots_datasets/output_ae/*
+set -e
+
+PYTHON_BIN="${PYTHON_BIN:-python3}"
+OUTPUT_DIR="./fewshots_datasets/output"
+mkdir -p "$OUTPUT_DIR"
+rm -rf "$OUTPUT_DIR"/*
 
 # 引入包含 run_sele_load_by_percent 函数的脚本文件，假设其名为 original_script.sh，根据实际情况修改路径
 source ./scripts/overall_acc.sh
@@ -29,4 +34,4 @@ run_sele_load_by_percent 25 0.3
 run_full_load_sele_inf 25
 run_full_load_full_inf
 
-time python3 ./scripts/extract_acc.py --figure15
+time "$PYTHON_BIN" ./scripts/extract_acc.py --figure15
