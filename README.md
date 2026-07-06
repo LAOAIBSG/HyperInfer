@@ -66,11 +66,57 @@ bash scripts/setup_runtime_dirs.sh
 bash scripts/check_repro_setup.sh
 ```
 
-`WEIGHT_PATH` should contain FlexGen-format OPT weights, for example
-`$WEIGHT_PATH/opt-6.7b-np`, `$WEIGHT_PATH/opt-13b-np`, and
-`$WEIGHT_PATH/opt-30b-np`. If these converted weights are absent, the FlexGen
-loader may try to download and convert HuggingFace `.bin` weights, which can take
-a long time and requires enough disk space.
+`WEIGHT_PATH` should contain FlexGen-format OPT weights. Prepare them with the
+steps below before running the experiments.
+
+## Prepare FlexGen Weights
+
+FlexGen does not load HuggingFace OPT checkpoints directly during inference. It
+expects one directory per model under `WEIGHT_PATH`, with each tensor saved as a
+NumPy file:
+
+```text
+$WEIGHT_PATH/opt-6.7b-np/
+$WEIGHT_PATH/opt-13b-np/
+$WEIGHT_PATH/opt-30b-np/
+```
+
+Convert HuggingFace OPT weights with `opt_config.py`:
+
+```bash
+cd h2o_flexgen/flexgen
+
+export WEIGHT_PATH=/path/to/flexgen_opt_weights
+export HF_HOME=/path/to/huggingface_cache
+export HYPERINFER_HF_CACHE=$HF_HOME
+
+python opt_config.py --model facebook/opt-6.7b --path "$WEIGHT_PATH"
+python opt_config.py --model facebook/opt-13b --path "$WEIGHT_PATH"
+python opt_config.py --model facebook/opt-30b --path "$WEIGHT_PATH"
+```
+
+The converter downloads HuggingFace PyTorch `.bin` shards into
+`HYPERINFER_HF_CACHE`/`HF_HOME`, loads each shard with PyTorch, and writes every
+parameter as a separate NumPy file under `$WEIGHT_PATH/<model-name>-np/`. During
+conversion it also:
+
+- removes the leading `model.` prefix from parameter names;
+- renames `decoder.final_layer_norm` to `decoder.layer_norm`;
+- copies `decoder.embed_tokens.weight` to `lm_head.weight` for the shared output
+  embedding.
+
+If the HuggingFace checkpoint is already downloaded, point
+`HYPERINFER_HF_MODEL_DIR` to that model snapshot for one conversion:
+
+```bash
+export HYPERINFER_HF_MODEL_DIR=/path/to/local/facebook/opt-6.7b/snapshot
+python opt_config.py --model facebook/opt-6.7b --path "$WEIGHT_PATH"
+unset HYPERINFER_HF_MODEL_DIR
+```
+
+The current converter reads PyTorch `.bin` checkpoints. If a local snapshot only
+contains `.safetensors` files, use a `.bin` checkpoint snapshot or convert it to
+PyTorch format first.
 
 ## Run Accuracy Experiments
 
