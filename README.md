@@ -112,8 +112,5 @@ data, then runs the AS/H2O/IMPRESS/HyperInfer comparison commands.
 
 ## Notes
 
-- Model weights, HuggingFace caches, generated KV caches, logs, and result files
-  are intentionally not tracked.
-- The code is a research prototype. The public scripts above are the supported
-  reproduction entry points.
-- Add a repository-level license before publishing a formal release.
+
+
