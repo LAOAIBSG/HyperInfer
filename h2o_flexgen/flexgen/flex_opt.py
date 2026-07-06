@@ -3192,17 +3192,27 @@ def get_test_inputs(prompt_len, num_prompts, tokenizer):
     return (input_ids[0],) * num_prompts
 
 
-def run_flexgen(args, logtrace_filename):
-    logits_bool = False   #计算返回logits
+def load_tokenizer(args):
+    cache_dir = args.hf_cache_dir or os.environ.get("HYPERINFER_HF_CACHE") or os.environ.get("HF_HOME")
+
+    common_kwargs = {"padding_side": "left"}
+    if cache_dir:
+        common_kwargs["cache_dir"] = cache_dir
+
     if args.model == "facebook/galactica-30b":
-        tokenizer = AutoTokenizer.from_pretrained("facebook/galactica-30b", padding_side="left")
-    elif 'llama' in args.model:
-        tokenizer = AutoTokenizer.from_pretrained(args.model, padding_side="left",padding="max_length")
+        return AutoTokenizer.from_pretrained("facebook/galactica-30b", **common_kwargs)
+    if 'llama' in args.model:
+        tokenizer = AutoTokenizer.from_pretrained(args.model, padding="max_length", **common_kwargs)
         tokenizer.add_special_tokens({'pad_token': '[PAD]'})
         tokenizer.pad_token_id = 2
-    else:
-        tokenizer = AutoTokenizer.from_pretrained(f'/data/zrd/huggingface/hub/models--facebook--opt-30b/snapshots/ceea0a90ac0f6fae7c2c34bcb40477438c152546/', padding_side="left", use_fast=True)
-        # tokenizer.save_pretrained(f'cache/huggingface/hub/{args.model}') # 避免 token 重复加载
+        return tokenizer
+
+    return AutoTokenizer.from_pretrained(args.model, use_fast=True, **common_kwargs)
+
+
+def run_flexgen(args, logtrace_filename):
+    logits_bool = False   #计算返回logits
+    tokenizer = load_tokenizer(args)
     num_prompts = args.num_gpu_batches * args.gpu_batch_size
     prompt_len, gen_len, cut_gen_len = args.prompt_len, args.gen_len, args.cut_gen_len
 
@@ -3802,11 +3812,14 @@ def add_parser_arguments(parser):
     # 加参数用的
     parser.add_argument("--model", type=str, default="facebook/opt-2.7b",
         help="The model name.")
-    parser.add_argument("--path", type=str, default="~/opt_weights",
+    parser.add_argument("--path", type=str, default=os.environ.get("WEIGHT_PATH", "~/opt_weights"),
         help="The path to the model weights. If there are no cached weights, "
              "FlexGen will automatically download them from HuggingFace.")
-    parser.add_argument("--offload-dir", type=str, default="~/flexgen_offload_dir",
+    parser.add_argument("--offload-dir", type=str, default=os.environ.get("OFFLOAD_DIR", "~/flexgen_offload_dir"),
         help="The directory to offload tensors. ")
+    parser.add_argument("--hf-cache-dir", type=str,
+        default=os.environ.get("HYPERINFER_HF_CACHE") or os.environ.get("HF_HOME"),
+        help="Optional HuggingFace cache directory for tokenizers and model downloads.")
     parser.add_argument("--prompt-len", type=int, default=32)
     parser.add_argument("--gen-len", type=int, default=32)
     parser.add_argument("--cut-gen-len", type=int,

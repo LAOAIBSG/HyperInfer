@@ -5,6 +5,13 @@ PYTHON_BIN="${PYTHON_BIN:-python3}"
 OUTPUT_DIR="./fewshots_datasets/output"
 mkdir -p "$OUTPUT_DIR"
 rm -rf "$OUTPUT_DIR"/*
+WEIGHT_PATH="${WEIGHT_PATH:-${HOME}/opt_weights}"
+OFFLOAD_DIR="${OFFLOAD_DIR:-${HOME}/flexgen_offload_dir}"
+HF_CACHE_DIR="${HYPERINFER_HF_CACHE:-${HF_HOME:-}}"
+RUNTIME_ARGS=(--path "$WEIGHT_PATH" --offload-dir "$OFFLOAD_DIR")
+if [[ -n "$HF_CACHE_DIR" ]]; then
+    RUNTIME_ARGS+=(--hf-cache-dir "$HF_CACHE_DIR")
+fi
 
 model="facebook/opt-6.7b"
 sele_percents=25
@@ -21,7 +28,7 @@ do
     task="openbookqa"
     result_file="${result_prefix}/output/${task}-opt-6.7b-full.jsonl"
 
-    time "$PYTHON_BIN" ./flex_opt.py \
+    time "$PYTHON_BIN" ./flex_opt.py "${RUNTIME_ARGS[@]}" \
             --gpu-batch-size 1 \
             --overlap false \
             --model $model \

@@ -17,18 +17,18 @@ tokenizer = None
 def process_init():
     global tokenizer
     model_name = os.environ.get('MODEL_NAME', 'facebook/opt-1.3b')
+    cache_dir = os.environ.get("HYPERINFER_HF_CACHE") or os.environ.get("HF_HOME")
 
     if model_name == "EleutherAI/gpt-neox-20b":
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir=cache_dir)
         tokenizer.model_max_length = int(1e30)
         tokenizer.pad_token = "<|endoftext|>"
     elif model_name == 'huggyllama/llama-7b':
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir=cache_dir)
         tokenizer.model_max_length = int(1e30)
         tokenizer.pad_token = "<|endoftext|>"
     else:
-        tokenizer = AutoTokenizer.from_pretrained(f'cache/huggingface/hub/{model_name}', cache_dir=f'cache/huggingface/hub/{model_name}')
-        # tokenizer = AutoTokenizer.from_pretrained(model_name)
+        tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir=cache_dir)
         tokenizer.add_bos_token = False
 
 def process_request(x, seq):
@@ -104,5 +104,4 @@ class EvalHarnessAdaptor(LM):
                 output.append((float(-loss), bool(correct)))
 
         return output
-
 

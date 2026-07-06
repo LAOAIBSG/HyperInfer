@@ -225,14 +225,30 @@ def download_opt_weights(model_name, path):
           f"If it seems to get stuck, you can monitor the progress by "
           f"checking the memory usage of this process.")
 
-    if "opt" in model_name:
+    if "/" in model_name:
+        hf_model_name = model_name
+    elif "opt" in model_name:
         hf_model_name = "facebook/" + model_name
     elif "galactica" in model_name:
         hf_model_name = "facebook/" + model_name
+    else:
+        hf_model_name = model_name
 
-    # folder = snapshot_download(hf_model_name, allow_patterns="*.bin")
-    folder = '/data/zrd/huggingface/hub/models--facebook--opt-30b/snapshots/ceea0a90ac0f6fae7c2c34bcb40477438c152546'
+    folder = os.environ.get("HYPERINFER_HF_MODEL_DIR")
+    if not folder:
+        cache_dir = os.environ.get("HYPERINFER_HF_CACHE") or os.environ.get("HF_HOME")
+        folder = snapshot_download(
+            hf_model_name,
+            cache_dir=cache_dir,
+            allow_patterns="*.bin",
+        )
     bin_files = glob.glob(os.path.join(folder, "*.bin"))
+    if not bin_files:
+        raise FileNotFoundError(
+            f"No PyTorch .bin weights found in {folder}. "
+            "Set HYPERINFER_HF_MODEL_DIR to a local HuggingFace snapshot with .bin weights, "
+            "or place converted FlexGen weights under --path."
+        )
 
     if "/" in model_name:
         model_name = model_name.split("/")[1].lower()

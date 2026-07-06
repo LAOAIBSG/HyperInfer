@@ -4,6 +4,13 @@ result_prefix="./fewshots_datasets"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 OUTPUT_DIR="${result_prefix}/output"
 mkdir -p "$OUTPUT_DIR"
+WEIGHT_PATH="${WEIGHT_PATH:-${HOME}/opt_weights}"
+OFFLOAD_DIR="${OFFLOAD_DIR:-${HOME}/flexgen_offload_dir}"
+HF_CACHE_DIR="${HYPERINFER_HF_CACHE:-${HF_HOME:-}}"
+RUNTIME_ARGS=(--path "$WEIGHT_PATH" --offload-dir "$OFFLOAD_DIR")
+if [[ -n "$HF_CACHE_DIR" ]]; then
+    RUNTIME_ARGS+=(--hf-cache-dir "$HF_CACHE_DIR")
+fi
 
 # 定义任务列表
 tasks=("copa")
@@ -18,7 +25,7 @@ run_full_load_sele_inf() {
         for task in "${tasks[@]}"; do
             input_file="${result_prefix}/input/${task}.jsonl"
 
-            time "$PYTHON_BIN" flex_opt.py \
+            time "$PYTHON_BIN" flex_opt.py "${RUNTIME_ARGS[@]}" \
                 --gpu-batch-size 1 \
                 --overlap false \
                 --model "$m" \
@@ -54,7 +61,7 @@ run_sele_load_by_percent() {
         for task in "${tasks[@]}"; do
             input_file="${result_prefix}/input/${task}.jsonl"
 
-            time "$PYTHON_BIN" flex_opt.py \
+            time "$PYTHON_BIN" flex_opt.py "${RUNTIME_ARGS[@]}" \
                 --gpu-batch-size 1 \
                 --overlap false \
                 --model "$m" \
@@ -89,7 +96,7 @@ run_full_load_full_inf() {
         for task in "${tasks[@]}"; do
             input_file="${result_prefix}/input/${task}.jsonl"
 
-            time "$PYTHON_BIN" flex_opt.py \
+            time "$PYTHON_BIN" flex_opt.py "${RUNTIME_ARGS[@]}" \
                 --gpu-batch-size 1 \
                 --overlap false \
                 --model "$m" \

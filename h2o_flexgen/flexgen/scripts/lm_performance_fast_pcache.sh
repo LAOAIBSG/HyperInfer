@@ -11,13 +11,16 @@ cd "${REPO_ROOT}"
 
 export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-1}"
 
-DEFAULT_PYTHON="/home/zrd/miniconda3/envs/impress/bin/python"
-if [[ -x "$DEFAULT_PYTHON" ]]; then
-  PYTHON_BIN="${PYTHON_BIN:-$DEFAULT_PYTHON}"
-else
-  PYTHON_BIN="${PYTHON_BIN:-python3}"
-fi
+PYTHON_BIN="${PYTHON_BIN:-python3}"
 PYTHON_SCRIPT="${PYTHON_SCRIPT:-${REPO_ROOT}/flex_opt_fast_pcache.py}"
+weight_path="${WEIGHT_PATH:-${HOME}/opt_weights}"
+offload_dir="${OFFLOAD_DIR:-${HOME}/flexgen_offload_dir}"
+hf_cache_dir="${HYPERINFER_HF_CACHE:-${HF_HOME:-}}"
+
+runtime_args=(--path "$weight_path" --offload-dir "$offload_dir")
+if [[ -n "$hf_cache_dir" ]]; then
+  runtime_args+=(--hf-cache-dir "$hf_cache_dir")
+fi
 
 models=("opt-6.7b" "opt-13b" "opt-30b")
 sele_percents=(50 25 25 25)
@@ -114,7 +117,7 @@ for di in "${!datasets[@]}"; do
     echo "===== dataset=${dataset} model=${model} padding_mul=${padding_mul} suffix_mul=${suffix_mul} ====="
 
     # Prepare the important-token mapping list used by selective loading.
-    run_cmd "$PYTHON_BIN" "$PYTHON_SCRIPT" \
+    run_cmd "$PYTHON_BIN" "$PYTHON_SCRIPT" "${runtime_args[@]}" \
       --gpu-batch-size 1 --overlap false --model "$model_path" \
       --prefix-aware-inf --full-load --sele-inf \
       --input-path "$dataset_path" --model-type opt --logits --gen-len 1 \
@@ -122,7 +125,7 @@ for di in "${!datasets[@]}"; do
       --no-prefetch --generate-mapping-list
 
     # Build prefix KV data. This is a preparation step, not a TTFT comparison.
-    run_timed "$PYTHON_BIN" "$PYTHON_SCRIPT" \
+    run_timed "$PYTHON_BIN" "$PYTHON_SCRIPT" "${runtime_args[@]}" \
       --gpu-batch-size 1 --overlap false --model "$model_path" \
       --prefix-dump --input-path "$dataset_path" --model-type opt --logits \
       --gen-len 1 --padding-mul "$padding_mul" \
@@ -130,7 +133,7 @@ for di in "${!datasets[@]}"; do
       --recompute --sep-layer false --suffix-mul "$suffix_mul"
 
     # AS: full KV loading.
-    run_timed "$PYTHON_BIN" "$PYTHON_SCRIPT" \
+    run_timed "$PYTHON_BIN" "$PYTHON_SCRIPT" "${runtime_args[@]}" \
       --gpu-batch-size 1 --overlap false --model "$model_path" \
       --input-path "$dataset_path" --model-type opt --logits --gen-len 1 \
       --padding-mul "$padding_mul" --gpu-size "$gpu_size" --cpu-size "$cpu_size" \
@@ -138,7 +141,7 @@ for di in "${!datasets[@]}"; do
       --cache-type LRU --suffix-mul "$suffix_mul"
 
     # AS + H2O + LRU: load all keys, select tokens, then load selected values.
-    run_timed "$PYTHON_BIN" "$PYTHON_SCRIPT" \
+    run_timed "$PYTHON_BIN" "$PYTHON_SCRIPT" "${runtime_args[@]}" \
       --gpu-batch-size 1 --overlap false --model "$model_path" \
       --input-path "$dataset_path" --model-type opt --logits --gen-len 1 \
       --padding-mul "$padding_mul" --gpu-size "$gpu_size" --cpu-size "$cpu_size" \
@@ -147,7 +150,7 @@ for di in "${!datasets[@]}"; do
       --sele-percent "$sele_percent" --suffix-mul "$suffix_mul"
 
     # AS + H2O + LFU.
-    run_timed "$PYTHON_BIN" "$PYTHON_SCRIPT" \
+    run_timed "$PYTHON_BIN" "$PYTHON_SCRIPT" "${runtime_args[@]}" \
       --gpu-batch-size 1 --overlap false --model "$model_path" \
       --input-path "$dataset_path" --model-type opt --logits --gen-len 1 \
       --padding-mul "$padding_mul" --gpu-size "$gpu_size" --cpu-size "$cpu_size" \
@@ -156,7 +159,7 @@ for di in "${!datasets[@]}"; do
       --sele-percent "$sele_percent" --suffix-mul "$suffix_mul"
 
     # IMPRESS: selective loading with CKLFU and reorder, no async prefetch.
-    run_timed "$PYTHON_BIN" "$PYTHON_SCRIPT" \
+    run_timed "$PYTHON_BIN" "$PYTHON_SCRIPT" "${runtime_args[@]}" \
       --gpu-batch-size 1 --overlap false --model "$model_path" \
       --input-path "$dataset_path" --model-type opt --logits --gen-len 1 \
       --padding-mul "$padding_mul" --gpu-size "$gpu_size" --cpu-size "$cpu_size" \
@@ -166,7 +169,7 @@ for di in "${!datasets[@]}"; do
       --no-prefetch --reorder --suffix-mul "$suffix_mul"
 
     # IMPRESS ablation: no reorder, LRU cache.
-    run_timed "$PYTHON_BIN" "$PYTHON_SCRIPT" \
+    run_timed "$PYTHON_BIN" "$PYTHON_SCRIPT" "${runtime_args[@]}" \
       --gpu-batch-size 1 --overlap false --model "$model_path" \
       --input-path "$dataset_path" --model-type opt --logits --gen-len 1 \
       --padding-mul "$padding_mul" --gpu-size "$gpu_size" --cpu-size "$cpu_size" \
@@ -176,7 +179,7 @@ for di in "${!datasets[@]}"; do
       --no-prefetch --suffix-mul "$suffix_mul"
 
     # IMPRESS ablation: reorder with LRU cache.
-    run_timed "$PYTHON_BIN" "$PYTHON_SCRIPT" \
+    run_timed "$PYTHON_BIN" "$PYTHON_SCRIPT" "${runtime_args[@]}" \
       --gpu-batch-size 1 --overlap false --model "$model_path" \
       --input-path "$dataset_path" --model-type opt --logits --gen-len 1 \
       --padding-mul "$padding_mul" --gpu-size "$gpu_size" --cpu-size "$cpu_size" \
@@ -186,7 +189,7 @@ for di in "${!datasets[@]}"; do
       --no-prefetch --reorder --suffix-mul "$suffix_mul"
 
     # HyperInfer ablation: async prefetch, no reorder, LRU cache.
-    run_timed "$PYTHON_BIN" "$PYTHON_SCRIPT" \
+    run_timed "$PYTHON_BIN" "$PYTHON_SCRIPT" "${runtime_args[@]}" \
       --gpu-batch-size 1 --overlap false --model "$model_path" \
       --prefix-aware-inf --input-path "$dataset_path" --model-type opt \
       --logits --gen-len 1 --sele-load --sele-percent "$sele_percent" \
@@ -196,7 +199,7 @@ for di in "${!datasets[@]}"; do
       --padding-mul "$padding_mul" --sep-layer false --suffix-mul "$suffix_mul"
 
     # HyperInfer ablation: async prefetch, reorder, LRU cache.
-    run_timed "$PYTHON_BIN" "$PYTHON_SCRIPT" \
+    run_timed "$PYTHON_BIN" "$PYTHON_SCRIPT" "${runtime_args[@]}" \
       --gpu-batch-size 1 --overlap false --model "$model_path" \
       --prefix-aware-inf --input-path "$dataset_path" --model-type opt \
       --logits --gen-len 1 --sele-load --sele-percent "$sele_percent" \
@@ -207,7 +210,7 @@ for di in "${!datasets[@]}"; do
       --reorder
 
     # HyperInfer: async prefetch, reorder, CKLFU cache.
-    run_timed "$PYTHON_BIN" "$PYTHON_SCRIPT" \
+    run_timed "$PYTHON_BIN" "$PYTHON_SCRIPT" "${runtime_args[@]}" \
       --gpu-batch-size 1 --overlap false --model "$model_path" \
       --prefix-aware-inf --input-path "$dataset_path" --model-type opt \
       --logits --gen-len 1 --sele-load --sele-percent "$sele_percent" \
