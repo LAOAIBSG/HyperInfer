@@ -1,0 +1,11 @@
+# torch==2.0.1
+pytorch
+# torchvision==0.15.2
+torchvision
+# torchaudio==2.0.2
+torchaudio
+sentencepiece
+# lm-eval==0.3.0
+# lm-eval
+ftfy
+accelerate
