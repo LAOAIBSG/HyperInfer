@@ -1,11 +1,39 @@
-# torch==2.0.1
-pytorch
-# torchvision==0.15.2
-torchvision
-# torchaudio==2.0.2
-torchaudio
-sentencepiece
-# lm-eval==0.3.0
-# lm-eval
-ftfy
-accelerate
+# Core runtime dependencies for HyperInfer.
+# Tested with Python 3.12.13 in the internal `impress` conda environment.
+#
+# If the default PyTorch wheel does not match your CUDA driver/runtime, install
+# a suitable PyTorch build first, then install the remaining packages here.
+
+torch==2.6.0
+transformers==4.53.3
+tokenizers==0.21.4
+safetensors==0.7.0
+numpy==2.4.3
+tqdm==4.67.3
+psutil==7.2.2
+attrs==26.1.0
+requests==2.33.1
+PyYAML==6.0.3
+zstandard==0.25.0
+
+# Dataset and evaluation utilities.
+datasets==2.15.0
+evaluate==0.4.6
+lm-eval==0.3.0
+sqlitedict==2.1.0
+jsonlines==4.0.0
+ftfy==6.3.1
+rouge-score==0.1.2
+sacrebleu==1.5.0
+nltk==3.9.4
+scipy==1.17.1
+scikit-learn==1.8.0
+pandas==3.0.2
+
+# Plotting and profiling scripts.
+matplotlib==3.10.8
+seaborn==0.13.2
+
+# Optional for some HuggingFace model/tokenizer paths:
+# accelerate
+# sentencepiece
