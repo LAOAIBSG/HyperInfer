@@ -47,11 +47,21 @@ Set the paths used by both accuracy and performance scripts:
 ```bash
 cd h2o_flexgen/flexgen
 
+# Directory that stores FlexGen-converted OPT weights.
+# Expected examples:
+#   $WEIGHT_PATH/opt-6.7b-np
+#   $WEIGHT_PATH/opt-13b-np
+#   $WEIGHT_PATH/opt-30b-np
 export WEIGHT_PATH=/path/to/flexgen_opt_weights
-export OFFLOAD_DIR=/path/to/flexgen_offload_dir
+
+# HuggingFace cache directory for tokenizers and optional model downloads.
 export HF_HOME=/path/to/huggingface_cache
+
+# HyperInfer uses this variable when loading tokenizers or downloading weights.
+# It can point to the same directory as HF_HOME.
 export HYPERINFER_HF_CACHE=$HF_HOME
 
+mkdir -p "$HF_HOME"
 bash scripts/setup_runtime_dirs.sh
 bash scripts/check_repro_setup.sh
 ```
@@ -101,16 +111,24 @@ cd h2o_flexgen/flexgen
 Useful overrides:
 
 ```bash
+# Use GPU 0 for this run only.
 CUDA_VISIBLE_DEVICES=0 ./scripts/lm_performance_fast_pcache.sh
+
+# Use a specific Python interpreter for this run only.
 PYTHON_BIN=/path/to/python ./scripts/lm_performance_fast_pcache.sh
+
+# Use a different FlexGen weight directory for this run only.
 WEIGHT_PATH=/path/to/flexgen_opt_weights ./scripts/lm_performance_fast_pcache.sh
+
+# Override the GPU/CPU KV cache capacity parameters used by the script.
 GPU_SIZE=10240 CPU_SIZE=32768 ./scripts/lm_performance_fast_pcache.sh
 ```
+
+The `VAR=value command` form only applies the variable to that single command.
+Use `export VAR=value` if you want the setting to persist for later commands in
+the same shell.
 
 The script first generates the important-token mapping list and dumps prefix KV
 data, then runs the AS/H2O/IMPRESS/HyperInfer comparison commands.
 
 ## Notes
-
-
-

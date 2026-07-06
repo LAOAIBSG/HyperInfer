@@ -14,10 +14,9 @@ export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-1}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 PYTHON_SCRIPT="${PYTHON_SCRIPT:-${REPO_ROOT}/flex_opt_fast_pcache.py}"
 weight_path="${WEIGHT_PATH:-${HOME}/opt_weights}"
-offload_dir="${OFFLOAD_DIR:-${HOME}/flexgen_offload_dir}"
 hf_cache_dir="${HYPERINFER_HF_CACHE:-${HF_HOME:-}}"
 
-runtime_args=(--path "$weight_path" --offload-dir "$offload_dir")
+runtime_args=(--path "$weight_path")
 if [[ -n "$hf_cache_dir" ]]; then
   runtime_args+=(--hf-cache-dir "$hf_cache_dir")
 fi

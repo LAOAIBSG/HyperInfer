@@ -5,9 +5,8 @@ PYTHON_BIN="${PYTHON_BIN:-python3}"
 OUTPUT_DIR="${result_prefix}/output"
 mkdir -p "$OUTPUT_DIR"
 WEIGHT_PATH="${WEIGHT_PATH:-${HOME}/opt_weights}"
-OFFLOAD_DIR="${OFFLOAD_DIR:-${HOME}/flexgen_offload_dir}"
 HF_CACHE_DIR="${HYPERINFER_HF_CACHE:-${HF_HOME:-}}"
-RUNTIME_ARGS=(--path "$WEIGHT_PATH" --offload-dir "$OFFLOAD_DIR")
+RUNTIME_ARGS=(--path "$WEIGHT_PATH")
 if [[ -n "$HF_CACHE_DIR" ]]; then
     RUNTIME_ARGS+=(--hf-cache-dir "$HF_CACHE_DIR")
 fi
