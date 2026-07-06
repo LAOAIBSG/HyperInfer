@@ -1,11 +1,37 @@
 # HyperInfer
 
-HyperInfer is a prefix KV cache loading system for LLM inference. This release
-keeps the original FlexGen/H2O-based research prototype, with scripts for the
-accuracy experiments and the fast pcache performance comparison.
+HyperInfer is a prefix KV cache loading system for LLM inference. This artifact
+supports the paper "HyperInfer: Accelerating Large Language Model Inference via
+Importance-Informed Prefix-KV Caching and Prefetching", which is the journal
+extension of our FAST'25 paper "IMPRESS: An Importance-Informed Multi-Tier
+Prefix KV Storage System for Large Language Model Inference".
+
+This release keeps the original FlexGen/H2O-based research prototype, with
+scripts for the accuracy experiments and the fast pcache performance comparison.
 
 The repository does not include model weights or generated prefix KV caches.
 Readers should prepare model weights on their own machine.
+
+## Citation
+
+If you use this artifact, please cite HyperInfer and the original IMPRESS paper:
+
+```bibtex
+@article{hyperinfer-tc26,
+  author  = {Ruidong Zhang and Weijian Chen and Ping Chen and Shuibing He and Wenjie Liang and Rongchen Liu and Siling Yang and Xuechen Zhang},
+  title   = {{HyperInfer}: Accelerating Large Language Model Inference via Importance-Informed Prefix-KV Caching and Prefetching},
+  journal = {IEEE Transactions on Computers},
+  year    = {2026},
+  note    = {To appear}
+}
+
+@inproceedings{impress-fast25,
+  author    = {Weijian Chen and Shuibing He and Haoyang Qu and Ruidong Zhang and Siling Yang and Ping Chen and Yi Zheng and Baoxing Huai and Gang Chen},
+  title     = {{IMPRESS}: An {Importance-Informed} {Multi-Tier} Prefix {KV} Storage System for Large Language Model Inference},
+  booktitle = {23rd USENIX Conference on File and Storage Technologies (FAST)},
+  year      = {2025}
+}
+```
 
 ## Main Files
 
